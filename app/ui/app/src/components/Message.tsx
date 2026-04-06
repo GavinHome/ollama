@@ -1,10 +1,52 @@
-import { Message as MessageType, ToolCall, File } from "@/gotypes";
+import { Message as MessageType, ToolCall, File, ChatMetrics as MetricsType } from "@/gotypes";
 import Thinking from "./Thinking";
 import StreamingMarkdownContent from "./StreamingMarkdownContent";
 import { ImageThumbnail } from "./ImageThumbnail";
 import { isImageFile } from "@/utils/imageUtils";
 import CopyButton from "./CopyButton";
 import React, { useState, useMemo, useRef } from "react";
+import { Gauge, MessageSquare, Clock, HardDrive } from "lucide-react";
+
+function formatDuration(ns: number): string {
+  if (ns <= 0) return "0s";
+  if (ns < 1_000_000) return `${Math.round(ns / 1_000)}ms`;
+  return `${(ns / 1e9).toFixed(1)}s`;
+}
+
+function MetricsBadge({
+  metrics,
+}: {
+  metrics: MetricsType;
+}) {
+  const tokenSpeed =
+    metrics.evalCount > 0 && metrics.evalDuration > 0
+      ? (metrics.evalCount / (metrics.evalDuration / 1e9)).toFixed(2)
+      : null;
+
+  return (
+    <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+      {tokenSpeed && (
+        <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500 px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
+          <Gauge className="w-3 h-3" /> {tokenSpeed} token/s
+        </span>
+      )}
+      <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500 px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
+        <MessageSquare className="w-3 h-3" /> {metrics.promptEvalCount} prompt
+      </span>
+      <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500 px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
+        <MessageSquare className="w-3 h-3" /> {metrics.evalCount} completion
+      </span>
+      <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500 px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
+        <Clock className="w-3 h-3" /> {formatDuration(metrics.totalDuration)}
+      </span>
+      {metrics.loadDuration > 100_000_000 && (
+        <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500 px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
+          <HardDrive className="w-3 h-3" /> {formatDuration(metrics.loadDuration)}
+        </span>
+      )}
+    </div>
+  );
+}
 
 const Message = React.memo(
   ({
@@ -974,6 +1016,7 @@ function OtherRoleMessage({
         (!message.tool_calls || message.tool_calls.length === 0) &&
         !message.tool_call && (
           <div className="-ml-1">
+            {message.metrics && <MetricsBadge metrics={message.metrics} />}
             <CopyButton
               content={message.content || ""}
               copyRef={messageRef as React.RefObject<HTMLElement>}

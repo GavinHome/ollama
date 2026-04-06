@@ -53,6 +53,16 @@ type ModelCapabilitiesResponse struct {
 	Capabilities []model.Capability `json:"capabilities"`
 }
 
+// ChatMetrics contains token-level performance data, included only in "done" events
+type ChatMetrics struct {
+	TotalDuration      time.Duration `json:"totalDuration,omitempty"`
+	LoadDuration       time.Duration `json:"loadDuration,omitempty"`
+	PromptEvalCount    int           `json:"promptEvalCount,omitempty"`
+	PromptEvalDuration time.Duration `json:"promptEvalDuration,omitempty"`
+	EvalCount          int           `json:"evalCount,omitempty"`
+	EvalDuration       time.Duration `json:"evalDuration,omitempty"`
+}
+
 // ChatEvent is for regular chat messages and assistant interactions
 type ChatEvent struct {
 	EventName string `json:"eventName" ts_type:"\"chat\" | \"thinking\" | \"assistant_with_tools\" | \"tool_call\" | \"tool\" | \"tool_result\" | \"done\" | \"chat_created\""`
@@ -75,6 +85,9 @@ type ChatEvent struct {
 
 	// Tool state field from the new code
 	ToolState any `json:"toolState,omitempty"`
+
+	// Metrics: token stats, only populated on "done" event
+	Metrics *ChatMetrics `json:"metrics,omitempty"`
 }
 
 // DownloadEvent is for model download progress

@@ -867,6 +867,9 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) error {
 	// inject them into the next request, and attach on first assistant content/thinking.
 	var pendingAssistantToolCalls []store.ToolCall
 
+	// Capture final metrics from the last streaming response
+	var finalMetrics *responses.ChatMetrics
+
 	passNum := 1
 
 	for {
@@ -916,6 +919,18 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) error {
 				now := time.Now()
 				thinkingTimeStart = &now
 				thinkingTimeEnd = nil
+			}
+
+			// Capture metrics from the final done response
+			if res.Done {
+				finalMetrics = &responses.ChatMetrics{
+					TotalDuration:      res.TotalDuration,
+					LoadDuration:       res.LoadDuration,
+					PromptEvalCount:    res.PromptEvalCount,
+					PromptEvalDuration: res.PromptEvalDuration,
+					EvalCount:          res.EvalCount,
+					EvalDuration:       res.EvalDuration,
+				}
 			}
 
 			if res.Message.Content == "" && res.Message.Thinking == "" && len(res.Message.ToolCalls) == 0 {
@@ -1219,8 +1234,21 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request) error {
 		}
 	}
 
-	json.NewEncoder(w).Encode(responses.ChatEvent{EventName: "done"})
+	json.NewEncoder(w).Encode(responses.ChatEvent{EventName: "done", Metrics: finalMetrics})
 	flusher.Flush()
+
+	if finalMetrics != nil && len(chat.Messages) > 0 && chat.Messages[len(chat.Messages)-1].Role == "assistant" {
+		lastMsg := &chat.Messages[len(chat.Messages)-1]
+		lastMsg.Metrics = &store.MessageMetrics{
+			TotalDuration:      finalMetrics.TotalDuration,
+			LoadDuration:       finalMetrics.LoadDuration,
+			PromptEvalCount:    finalMetrics.PromptEvalCount,
+			PromptEvalDuration: finalMetrics.PromptEvalDuration,
+			EvalCount:          finalMetrics.EvalCount,
+			EvalDuration:       finalMetrics.EvalDuration,
+		}
+		s.Store.UpdateLastMessage(chat.ID, *lastMsg)
+	}
 
 	if len(chat.Messages) > 0 {
 		chat.Messages[len(chat.Messages)-1].Stream = false

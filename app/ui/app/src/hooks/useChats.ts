@@ -42,6 +42,18 @@ export const useChat = (chatId: string) => {
           return existingData;
         }
       }
+      // After invalidation, merge any existing metrics from the cache
+      // since the server may not have persisted them yet (done event is sent before DB update)
+      if (response.chat?.messages?.length && existingData?.chat?.messages?.length) {
+        const cachedMessages = existingData.chat.messages;
+        response.chat.messages = response.chat.messages.map((msg, i) => {
+          if (cachedMessages[i]?.metrics && !msg.metrics) {
+            return { ...msg, metrics: cachedMessages[i].metrics };
+          }
+          return msg;
+        });
+      }
+
       // Process messages to ensure tool calls are properly structured
       if (response.chat && response.chat.messages) {
         response.chat.messages = response.chat.messages.map((msg) => {
@@ -646,26 +658,41 @@ export const useSendMessage = (chatId: string) => {
             );
             break;
           }
-          case "done":
-            // TODO(drifkin): update the chat with the thinking time for cases
-            // where there is thinking content, but no other content (which
-            // should be very rare)
+          case "done": {
             setStreamingChatIds((prev: Set<string>) => {
               const newSet = new Set(prev);
               newSet.delete(currentChatId);
               return newSet;
             });
-            // Clear download progress when streaming is done
             setDownloadProgress((prev) => {
               const newMap = new Map(prev);
               newMap.delete(currentChatId);
               return newMap;
             });
-            // Ensure chat is fresh for next fetch
-            queryClient.invalidateQueries({
-              queryKey: ["chat", currentChatId],
-            });
+
+            // Optimistically update the last message in the cache with metrics
+            if (event.metrics) {
+              queryClient.setQueryData<{ chat: Chat }>(["chat", currentChatId],
+                (old: { chat: Chat } | undefined) => {
+                  if (!old?.chat?.messages) return old;
+                  const msgs = [...old.chat.messages];
+                  const lastIdx = msgs.length - 1;
+                  if (lastIdx >= 0 && msgs[lastIdx].role === "assistant") {
+                    msgs[lastIdx] = {
+                      ...msgs[lastIdx],
+                      metrics: event.metrics,
+                    } as Message;
+                    return {
+                      ...old,
+                      chat: { ...old.chat, messages: msgs },
+                    };
+                  }
+                  return old;
+                },
+              );
+            }
             break;
+          }
           case "chat_created": {
             if (!event.chatId) break;
             const newId = event.chatId;

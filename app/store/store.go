@@ -46,6 +46,16 @@ type Message struct {
 	UpdatedAt         time.Time        `json:"updated_at"`
 	ThinkingTimeStart *time.Time       `json:"thinkingTimeStart,omitempty" ts_type:"Date | undefined" ts_transform:"__VALUE__ && new Date(__VALUE__)"`
 	ThinkingTimeEnd   *time.Time       `json:"thinkingTimeEnd,omitempty" ts_type:"Date | undefined" ts_transform:"__VALUE__ && new Date(__VALUE__)"`
+	Metrics           *MessageMetrics  `json:"metrics,omitempty"`
+}
+
+type MessageMetrics struct {
+	TotalDuration      time.Duration `json:"totalDuration,omitempty"`
+	LoadDuration       time.Duration `json:"loadDuration,omitempty"`
+	PromptEvalCount    int           `json:"promptEvalCount,omitempty"`
+	PromptEvalDuration time.Duration `json:"promptEvalDuration,omitempty"`
+	EvalCount          int           `json:"evalCount,omitempty"`
+	EvalDuration       time.Duration `json:"evalDuration,omitempty"`
 }
 
 // MessageOptions contains optional parameters for creating a Message

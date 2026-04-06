@@ -323,6 +323,24 @@ export class ModelCapabilitiesResponse {
         this.capabilities = source["capabilities"];
     }
 }
+export class ChatMetrics {
+    totalDuration?: number;
+    loadDuration?: number;
+    promptEvalCount?: number;
+    promptEvalDuration?: number;
+    evalCount?: number;
+    evalDuration?: number;
+
+    constructor(source: any = {}) {
+        if ('string' === typeof source) source = JSON.parse(source);
+        this.totalDuration = source["totalDuration"];
+        this.loadDuration = source["loadDuration"];
+        this.promptEvalCount = source["promptEvalCount"];
+        this.promptEvalDuration = source["promptEvalDuration"];
+        this.evalCount = source["evalCount"];
+        this.evalDuration = source["evalDuration"];
+    }
+}
 export class ChatEvent {
     eventName: "chat" | "thinking" | "assistant_with_tools" | "tool_call" | "tool" | "tool_result" | "done" | "chat_created";
     content?: string;
@@ -336,6 +354,7 @@ export class ChatEvent {
     toolResultData?: any;
     chatId?: string;
     toolState?: any;
+    metrics?: ChatMetrics;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -351,6 +370,7 @@ export class ChatEvent {
         this.toolResultData = source["toolResultData"];
         this.chatId = source["chatId"];
         this.toolState = source["toolState"];
+        this.metrics = this.convertValues(source["metrics"], ChatMetrics);
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
