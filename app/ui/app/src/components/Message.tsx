@@ -578,7 +578,7 @@ function ToolCallDisplay({
     let args: Record<string, unknown> | null = null;
     try {
       args = JSON.parse(toolCall.function.arguments) as Record<string, unknown>;
-    } catch (e) {
+    } catch {
       args = null;
     }
     const query = args && typeof args.query === "string" ? args.query : "";
@@ -604,7 +604,7 @@ function ToolCallDisplay({
     let args: Record<string, unknown> | null = null;
     try {
       args = JSON.parse(toolCall.function.arguments) as Record<string, unknown>;
-    } catch (e) {
+    } catch {
       args = null;
     }
     const url = args && typeof args.url === "string" ? args.url : "";
