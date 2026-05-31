@@ -393,7 +393,7 @@ export const useSendMessage = (chatId: string) => {
                     role: "assistant",
                     content: "",
                     thinking: "",
-                    model: effectiveModel,
+                    model: effectiveModel.model,
                   }),
                 );
                 lastMessage = newMessages[newMessages.length - 1];
@@ -445,7 +445,7 @@ export const useSendMessage = (chatId: string) => {
                     role: "assistant",
                     content: "",
                     thinking: "",
-                    model: effectiveModel,
+                    model: effectiveModel.model,
                   }),
                 );
                 lastMessage = newMessages[newMessages.length - 1];
@@ -532,7 +532,7 @@ export const useSendMessage = (chatId: string) => {
                     thinkingTimeStart:
                       lastMessage.thinkingTimeStart || event.thinkingTimeStart,
                     thinkingTimeEnd: event.thinkingTimeEnd,
-                    model: selectedModel,
+                    model: selectedModel.model,
                   });
                   newMessages[newMessages.length - 1] = updatedMessage;
                 } else {
@@ -545,7 +545,7 @@ export const useSendMessage = (chatId: string) => {
                       tool_calls: event.toolCalls,
                       thinkingTimeStart: event.thinkingTimeStart,
                       thinkingTimeEnd: event.thinkingTimeEnd,
-                      model: selectedModel,
+                      model: selectedModel.model,
                     }),
                   );
                 }
@@ -726,7 +726,7 @@ export const useSendMessage = (chatId: string) => {
             queryClient.setQueryData(["chat", newId], {
               chat: new Chat({
                 id: newId,
-                model: effectiveModel,
+                model: effectiveModel.model,
                 messages: [
                   new Message({
                     role: "user",
