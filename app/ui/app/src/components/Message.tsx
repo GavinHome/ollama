@@ -5,7 +5,7 @@ import { ImageThumbnail } from "./ImageThumbnail";
 import { isImageFile } from "@/utils/imageUtils";
 import CopyButton from "./CopyButton";
 import React, { useState, useMemo, useRef } from "react";
-import { Gauge, MessageSquare, Clock, HardDrive } from "lucide-react";
+import { Gauge, ArrowUp, ArrowDown, Clock, HardDrive } from "lucide-react";
 
 function formatDuration(ns: number): string {
   if (ns <= 0) return "0s";
@@ -31,15 +31,15 @@ function MetricsBadge({
         </span>
       )}
       <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500 px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
-        <MessageSquare className="w-3 h-3" /> {metrics.promptEvalCount} prompt
+        <ArrowUp className="w-3 h-3" /> {metrics.promptEvalCount} prompt
       </span>
       <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500 px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
-        <MessageSquare className="w-3 h-3" /> {metrics.evalCount} completion
+        <ArrowDown className="w-3 h-3" /> {metrics.evalCount} completion
       </span>
       <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500 px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
         <Clock className="w-3 h-3" /> {formatDuration(metrics.totalDuration)}
       </span>
-      {metrics.loadDuration > 100_000_000 && (
+      {metrics.loadDuration && metrics.loadDuration > 100_000_000 && (
         <span className="inline-flex items-center gap-1 text-xs text-neutral-400 dark:text-neutral-500 px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
           <HardDrive className="w-3 h-3" /> {formatDuration(metrics.loadDuration)}
         </span>

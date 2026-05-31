@@ -116,6 +116,7 @@ export class Message {
     updated_at: Time;
     thinkingTimeStart?: Date | undefined;
     thinkingTimeEnd?: Date | undefined;
+    metrics?: ChatMetrics;
 
     constructor(source: any = {}) {
         if ('string' === typeof source) source = JSON.parse(source);
@@ -133,6 +134,7 @@ export class Message {
         this.updated_at = this.convertValues(source["updated_at"], Time);
         this.thinkingTimeStart = source["thinkingTimeStart"] && new Date(source["thinkingTimeStart"]);
         this.thinkingTimeEnd = source["thinkingTimeEnd"] && new Date(source["thinkingTimeEnd"]);
+        this.metrics = this.convertValues(source["metrics"], ChatMetrics);
     }
 
 	convertValues(a: any, classs: any, asMap: boolean = false): any {
